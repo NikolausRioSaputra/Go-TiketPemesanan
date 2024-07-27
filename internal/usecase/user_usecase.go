@@ -7,6 +7,7 @@ import (
 
 type UserUsecaseInterface interface {
 	UserSaver
+	UserFindById
 	UpdateUser
 	DeleteUser
 	GetAllUser
@@ -14,6 +15,10 @@ type UserUsecaseInterface interface {
 
 type UserSaver interface {
 	UserSaver(user domain.User) (domain.User, error)
+}
+
+type UserFindById interface {
+	UserFindById(id int) (domain.User, error)
 }
 
 type UpdateUser interface {
@@ -42,6 +47,10 @@ func (uc UserUsecase) UserSaver(user domain.User) (domain.User, error) {
 	return uc.UserRepo.UserSaver(&user)
 }
 
+func (uc UserUsecase) UserFindById(id int) (domain.User, error) {
+	return uc.UserRepo.UserFindById(id)
+}
+
 func (uc UserUsecase) UpdateUser(user domain.User) (userResponse domain.User, err error) {
 	userResponse, err = uc.UserRepo.UpdateUser(&user)
 	if err != nil {
@@ -65,3 +74,5 @@ func (uc UserUsecase) GetAllUser() ([]domain.User, error) {
 	}
 	return users, nil
 }
+
+
