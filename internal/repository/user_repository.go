@@ -7,6 +7,7 @@ import (
 
 type UserRepositoryInterface interface {
 	UserSaver
+	UserFindById
 	UserUpdater
 	UserDeleter
 	UserLister
@@ -14,6 +15,10 @@ type UserRepositoryInterface interface {
 
 type UserSaver interface {
 	UserSaver(user *domain.User) (domain.User, error)
+}
+
+type UserFindById interface {
+	UserFindById(id int) (domain.User, error)
 }
 
 type UserUpdater interface {
@@ -32,10 +37,20 @@ type UserRepository struct {
 	users map[int]domain.User
 }
 
+
 func NewUserRepository() UserRepositoryInterface {
 	return &UserRepository{
 		users: map[int]domain.User{},
 	}
+}
+
+// UserFindById implements UserRepositoryInterface.
+func (repo *UserRepository) UserFindById(id int) (domain.User, error) {
+	usr, exist := repo.users[id]
+	if !exist {
+		return domain.User{}, errors.New("user not found")
+	}
+	return usr, nil
 }
 
 // DeleteUser implements UserRepositoryInterface.
@@ -62,6 +77,12 @@ func (repo *UserRepository) GetAllUser() ([]domain.User, error) {
 func (repo *UserRepository) UserSaver(user *domain.User) (domain.User, error) {
 	if _, exist := repo.users[user.ID]; exist {
 		return *user, errors.New("user already exist")
+	}
+
+	if repo.users == nil || len(repo.users) == 0 {
+		user.ID = 1
+	} else {
+		user.ID = repo.users[len(repo.users)].ID + 1
 	}
 
 	repo.users[user.ID] = *user

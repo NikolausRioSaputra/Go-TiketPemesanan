@@ -7,10 +7,15 @@ import (
 
 type EventUsecaseInterface interface {
 	ListEvent
+	GetEventById
 }
 
 type ListEvent interface {
 	ListEvent() ([]domain.Event, error)
+}
+
+type GetEventById interface {
+	GetEventById(id int) (domain.Event, error)
 }
 
 type EventUsecase struct {
@@ -26,4 +31,8 @@ func NewEventUsecase(eventRepo repository.EventRepositoryInterface) EventUsecase
 
 func (uc EventUsecase) ListEvent() ([]domain.Event, error) {
 	return uc.EventRepo.ListEvent()
+}
+
+func (uc EventUsecase) GetEventById(id int) (domain.Event, error) {
+	return uc.EventRepo.GetEventById(id)
 }

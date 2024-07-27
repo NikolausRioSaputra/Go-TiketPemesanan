@@ -4,10 +4,20 @@ import "Go-TiketPemesanan/internal/domain"
 
 type EventRepositoryInterface interface {
 	ListEvent
+	GetEventById
+	UpdateEven
 }
 
 type ListEvent interface {
 	ListEvent() ([]domain.Event, error)
+}
+
+type GetEventById interface {
+	GetEventById(id int) (domain.Event, error)
+}
+
+type UpdateEven interface {
+	UpdateEvent(event domain.Event) error
 }
 
 type EventRepository struct {
@@ -35,4 +45,17 @@ func (repo *EventRepository) ListEvent() ([]domain.Event, error) {
 		events = append(events, event)
 	}
 	return events, nil
+}
+
+func (repo *EventRepository) GetEventById(id int) (domain.Event, error) {
+	event, ok := repo.events[id]
+	if !ok {
+		return domain.Event{}, nil
+	}
+	return event, nil
+}
+
+func (repo *EventRepository) UpdateEvent(event domain.Event) error {
+	repo.events[event.ID] = event
+	return nil
 }
