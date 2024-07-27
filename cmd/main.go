@@ -14,11 +14,16 @@ func main() {
 	userUsacase := usecase.NewUserUsecase(userRepo)
 	userHandler := handler.NewUserHandler(userUsacase)
 
+	eventRepo := repository.NewEventRepository()
+	eventUsecase := usecase.NewEventUsecase(eventRepo)
+	eventHandler := handler.NewEventHandler(eventUsecase)
+
 	routes := http.NewServeMux()
 	routes.HandleFunc("/users", userHandler.StoreNewUser)
 	routes.HandleFunc("/users/all", userHandler.GetAllUser)
 	routes.HandleFunc("/users/update", userHandler.UpdateUser)
 	routes.HandleFunc("/users/delete",userHandler.DeleteUser)
+	routes.HandleFunc("/events", eventHandler.ListEvent)
 
 	server := http.Server{
 		Addr:    ":8080",
