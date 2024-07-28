@@ -77,6 +77,10 @@ func (h *EventHandler) GetEventById(w http.ResponseWriter, r *http.Request) {
 		Message: "Success get event by id",
 		Data:    event,
 	})
+	log.Info().
+		Int("http.status.code", http.StatusOK).
+		TimeDiff("waktu process", time.Now(), start).
+		Msg("Get Event By ID API-Complated")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Error().
@@ -115,6 +119,10 @@ func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 		Message: "Success get all events",
 		Data:    events,
 	})
+	log.Info().
+		Int("http.status.code", http.StatusOK).
+		TimeDiff("waktu process", time.Now(), start).
+		Msg("Get All Event API-Completed")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Error().

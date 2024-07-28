@@ -89,7 +89,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	log.Info().
 		Int("http.status.code", http.StatusOK).
 		TimeDiff("waktu process", time.Now(), start).
-		Msg("Create Order API-Completed")
+		Msg("Buy Order Tiket API-Completed")
 	case <-ctx.Done():
 		// Operasi dibatalkan
 		http.Error(w, "Request canceled", http.StatusRequestTimeout)
@@ -139,5 +139,5 @@ func (h *OrderHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
 	log.Info().
 		Int("http.status.code", http.StatusOK).
 		TimeDiff("waktu process", time.Now(), start).
-		Msg("List Orders API-Completed")
+		Msg("List Orders Tiket API-Completed")
 }

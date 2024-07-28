@@ -90,6 +90,10 @@ func (h *UserHandler) UserFindById(w http.ResponseWriter, r *http.Request) {
 		Message: "Success get user by id",
 		Data:    user,
 	})
+	log.Info().
+		Int("http.status.code", http.StatusOK).
+		TimeDiff("waktu process", time.Now(), start).
+		Msg("Get User By ID API-Completed")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Error().
@@ -144,6 +148,10 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(ResponseMasage{
 		Message: "Success delete the user",
 	})
+	log.Info().
+		Int("http.status.code", http.StatusOK).
+		TimeDiff("waktu process", time.Now(), start).
+		Msg("Delete User API-Completed")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Error().
@@ -182,6 +190,10 @@ func (h *UserHandler) GetAllUser(w http.ResponseWriter, r *http.Request) {
 		Message: "Success get all user",
 		Data:    users,
 	})
+	log.Info().
+		Int("http.status.code", http.StatusOK).
+		TimeDiff("waktu process", time.Now(), start).
+		Msg("Get All User API-Completed")
 	if err != nil {
 		start := time.Now()
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -250,7 +262,7 @@ func (h *UserHandler) StoreNewUser(w http.ResponseWriter, r *http.Request) {
 	log.Info().
 		Int("http.status.code", http.StatusAccepted).
 		TimeDiff("waktu process", time.Now(), start).
-		Msg("Save User API Success")
+		Msg("Store New User API-Completed")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		valo.Validate(users)
@@ -301,6 +313,10 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		Message: "Success Update User",
 		Data:    users,
 	})
+	log.Info().
+		Int("http.status.code", http.StatusOK).
+		TimeDiff("waktu process", time.Now(), start).
+		Msg("Update User API-Completed")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Error().
