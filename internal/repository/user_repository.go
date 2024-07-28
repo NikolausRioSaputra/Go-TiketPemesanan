@@ -3,8 +3,10 @@ package repository
 import (
 	"Go-TiketPemesanan/internal/domain"
 	"errors"
+	"sync"
 )
 
+// interface yang mengabungkan beberapa interface kecil
 type UserRepositoryInterface interface {
 	UserSaver
 	UserFindById
@@ -13,39 +15,54 @@ type UserRepositoryInterface interface {
 	UserLister
 }
 
+// interface yang digunakan untuk menyimpan penguna, dengan menerima pointer ke domain.user dan mengembalikan domain.user dan error
 type UserSaver interface {
 	UserSaver(user *domain.User) (domain.User, error)
 }
 
+// interface yang digunakan untuk menerima id user, dengan mengemablikan domain.user dan error
 type UserFindById interface {
 	UserFindById(id int) (domain.User, error)
 }
 
+// interface yang digunakan untuk memperbaruhi penguna, dengan menerima pointer ke domain.user dan mengembalikan domain.user dan error
 type UserUpdater interface {
 	UpdateUser(user *domain.User) (domain.User, error)
 }
 
+// interface yang di gunakan untuk menghapus user dengan menerima id user dan mengembalikan domain.user dan error
 type UserDeleter interface {
 	DeleteUser(id int) (domain.User, error)
 }
 
+// interface yang di gunakan untuk melihat semua user, dan mengembalikan daftar semua penguna dalam bentuk slice dan error
 type UserLister interface {
 	GetAllUser() ([]domain.User, error)
 }
 
+// struktur data berfungsi untuk menyimpan data penguna dalam bentuk map dengan key int dan value sebagai user
 type UserRepository struct {
 	users map[int]domain.User
+	mu    sync.Mutex
 }
 
-
+/*
+fungsi ini mengembalikan sebuah object yang mengimplementasi userrepositroyinterface dan
+membuat object baru userrepository dan mengembalikan alamat memori dari object tersebut
+*/
 func NewUserRepository() UserRepositoryInterface {
 	return &UserRepository{
 		users: map[int]domain.User{},
+		mu: sync.Mutex{},
 	}
 }
 
-// UserFindById implements UserRepositoryInterface.
+// implementasi metode yang di diguanakn untuk mendapat kan id user dan mengembalikan kesalahan jika id tidak di temukan
+// *userrepository  tipe penerima ke userrepository pointer ini memungkin kita mengubah nilai dalam userrepository
 func (repo *UserRepository) UserFindById(id int) (domain.User, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
 	usr, exist := repo.users[id]
 	if !exist {
 		return domain.User{}, errors.New("user not found")
@@ -53,8 +70,11 @@ func (repo *UserRepository) UserFindById(id int) (domain.User, error) {
 	return usr, nil
 }
 
-// DeleteUser implements UserRepositoryInterface.
+// implementasi metode yang digunakan untuk menghapus user , dengan menerima id dan mengembalikan engembalikan domain.user dan error
 func (repo *UserRepository) DeleteUser(id int) (domain.User, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
 	deletedUser, exist := repo.users[id]
 	if !exist {
 		return domain.User{}, errors.New("user not found")
@@ -64,8 +84,11 @@ func (repo *UserRepository) DeleteUser(id int) (domain.User, error) {
 	return deletedUser, nil
 }
 
-// GetAllUser implements UserRepositoryInterface.
+// implementasi metode yang digunakan untuk mendapatkan semua user.
 func (repo *UserRepository) GetAllUser() ([]domain.User, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
 	users := []domain.User{}
 	for _, user := range repo.users {
 		users = append(users, user)
@@ -73,8 +96,11 @@ func (repo *UserRepository) GetAllUser() ([]domain.User, error) {
 	return users, nil
 }
 
-// SaveUser implements UserRepositoryInterface.
+// implementasi sebuah metode yang menyimpan penguna baru. dan mengatur id secara otomatis dan mengembalikan kesalahan
 func (repo *UserRepository) UserSaver(user *domain.User) (domain.User, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
 	if _, exist := repo.users[user.ID]; exist {
 		return *user, errors.New("user already exist")
 	}
@@ -89,8 +115,11 @@ func (repo *UserRepository) UserSaver(user *domain.User) (domain.User, error) {
 	return *user, nil
 }
 
-// UpdateUser implements UserRepositoryInterface.
+// implementasi sebuah metode yang memperbaruhi penguna, dan mengembalikan domain.user dan error
 func (repo *UserRepository) UpdateUser(user *domain.User) (domain.User, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+	
 	if _, exist := repo.users[user.ID]; exist {
 		repo.users[user.ID] = *user
 		return *user, nil
