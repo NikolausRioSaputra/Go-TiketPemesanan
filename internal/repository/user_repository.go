@@ -13,6 +13,7 @@ type UserRepositoryInterface interface {
 	UserUpdater
 	UserDeleter
 	UserLister
+	UpdateBalance
 }
 
 // interface yang digunakan untuk menyimpan penguna, dengan menerima pointer ke domain.user dan mengembalikan domain.user dan error
@@ -40,6 +41,11 @@ type UserLister interface {
 	GetAllUser() ([]domain.User, error)
 }
 
+// interface yang digunakan untuk mengupdate saldo, dengan menerima id user dan saldo baru, dan mengembalikan domain.user dan error
+type UpdateBalance interface {
+	UpdateBalance(id int, newBalance float64) (domain.User, error)
+}
+
 // struktur data berfungsi untuk menyimpan data penguna dalam bentuk map dengan key int dan value sebagai user
 type UserRepository struct {
 	users map[int]domain.User
@@ -53,7 +59,7 @@ membuat object baru userrepository dan mengembalikan alamat memori dari object t
 func NewUserRepository() UserRepositoryInterface {
 	return &UserRepository{
 		users: map[int]domain.User{},
-		mu: sync.Mutex{},
+		mu:    sync.Mutex{},
 	}
 }
 
@@ -119,10 +125,26 @@ func (repo *UserRepository) UserSaver(user *domain.User) (domain.User, error) {
 func (repo *UserRepository) UpdateUser(user *domain.User) (domain.User, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
-	
+
 	if _, exist := repo.users[user.ID]; exist {
 		repo.users[user.ID] = *user
 		return *user, nil
 	}
 	return *user, errors.New("user not found")
+}
+
+// UpdateBalance implements UserRepositoryInterface.
+func (repo *UserRepository) UpdateBalance(id int, newBalance float64)  (domain.User,error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	user, exist := repo.users[id]
+	if !exist {
+		return domain.User{}, errors.New("user not found")
+	}
+
+	user.Balance = newBalance
+	repo.users[id] = user
+	return user, nil
+
 }

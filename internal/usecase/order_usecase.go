@@ -53,13 +53,25 @@ func (uc OrderUsecase) CreateOrder(userId int, eventId int, tiketType string, qu
 		return domain.Order{}, errors.New("not enough tickets")
 	}
 
+	total := float64(quantity) * event.Tiket[tiketIndex].Price
+	if user.Balance < total {
+		return domain.Order{}, errors.New("insufficient balance")
+	}
+
 	event.Tiket[tiketIndex].Stock -= quantity
 	err = uc.EventRepo.UpdateEvent(event)
 	if err != nil {
 		return domain.Order{}, err
 	}
 
-	total := float64(quantity) * event.Tiket[tiketIndex].Price
+	// Mengurangi balance pengguna
+	newBalance := user.Balance - total
+	_, err = uc.UserRepo.UpdateBalance(userId, newBalance)
+	if err != nil {
+		return domain.Order{}, err
+	}
+
+	total = float64(quantity) * event.Tiket[tiketIndex].Price
 	order := domain.Order{
 		Status: "Confirmed",
 		User:   user,
