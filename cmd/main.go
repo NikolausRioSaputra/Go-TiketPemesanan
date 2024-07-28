@@ -4,12 +4,23 @@ import (
 	"Go-TiketPemesanan/internal/handler"
 	"Go-TiketPemesanan/internal/repository"
 	"Go-TiketPemesanan/internal/usecase"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"runtime"
+	"sync"
+	"syscall"
+	"time"
 )
 
 func main() {
+	runtime.GOMAXPROCS(2)
+
+	var wg sync.WaitGroup
+
 	userRepo := repository.NewUserRepository()
 	userUsacase := usecase.NewUserUsecase(userRepo)
 	userHandler := handler.NewUserHandler(userUsacase)
@@ -41,8 +52,28 @@ func main() {
 	}
 
 	fmt.Printf("Server running on %s", server.Addr)
-	err := server.ListenAndServe()
-	if err != nil {
-		log.Fatal("Server failed to start: ", err)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err := server.ListenAndServe()
+		if err != nil {
+			log.Fatal("Server failed to start: ", err)
+		}
+	}()
+
+	// Graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	
+	<-stop
+	fmt.Println("\nShutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown: ", err)
 	}
+	
+	wg.Wait()
 }

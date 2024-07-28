@@ -31,6 +31,7 @@ type ResponseMessage struct {
 	Data    interface{} `json:"data"`
 }
 func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	start := time.Now()
 	if r.Method != "POST" {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -57,6 +58,8 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	select {
+		case <-time.After(5 * time.Second): 
 	order, err := h.OrderUsecase.CreateOrder(req.UserID, req.EventID, req.TiketType, req.Quantity)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -87,7 +90,15 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		Int("http.status.code", http.StatusOK).
 		TimeDiff("waktu process", time.Now(), start).
 		Msg("Create Order API-Completed")
-
+	case <-ctx.Done():
+		// Operasi dibatalkan
+		http.Error(w, "Request canceled", http.StatusRequestTimeout)
+		log.Info().
+			Int("http.status.code", http.StatusRequestTimeout).
+			TimeDiff("waktu process", time.Now(), start).
+			Msg("request canceled")
+		return
+	}
 }
 func (h *OrderHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
