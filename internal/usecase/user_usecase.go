@@ -2,77 +2,69 @@ package usecase
 
 import (
 	"Go-TiketPemesanan/internal/domain"
-	"Go-TiketPemesanan/internal/repository"
+	// "Go-TiketPemesanan/internal/repository"
+	"Go-TiketPemesanan/internal/repositorydb"
+	"context"
 )
 
 type UserUsecaseInterface interface {
 	UserSaver
 	UserFindById
-	UpdateUser
-	DeleteUser
+	UserUpdater
+	UserDeleter
 	GetAllUser
 }
 
 type UserSaver interface {
-	UserSaver(user domain.User) (domain.User, error)
+	UserSaver(ctx context.Context, user domain.User) (domain.User, error)
 }
 
 type UserFindById interface {
-	UserFindById(id int) (domain.User, error)
+	UserFindById(ctx context.Context, id int) (domain.User, error)
 }
 
-type UpdateUser interface {
-	UpdateUser(user domain.User) (domain.User, error)
+type UserUpdater interface {
+	UserUpdater(ctx context.Context, user domain.User) (domain.User, error)
 }
 
-type DeleteUser interface {
-	DeleteUser(id int) (domain.User ,error)
+type UserDeleter interface {
+	UserDeleter(ctx context.Context, id int) error
 }
 
 type GetAllUser interface {
-	GetAllUser() ([]domain.User, error)
+	GetAllUser(ctx context.Context) ([]domain.User, error)
 }
 
 type UserUsecase struct {
-	UserRepo repository.UserRepositoryInterface
+	UserRepo repositorydb.UserRepositoryInterface
 }
 
-func NewUserUsecase(userRepo repository.UserRepositoryInterface) UserUsecase {
+func NewUserUsecase(userRepo repositorydb.UserRepositoryInterface) UserUsecase {
 	return UserUsecase{
 		UserRepo: userRepo,
 	}
 }
 
-func (uc UserUsecase) UserSaver(user domain.User) (domain.User, error) {
-	return uc.UserRepo.UserSaver(&user)
+func (uc UserUsecase) UserSaver(ctx context.Context, user domain.User) (domain.User, error) {
+	return uc.UserRepo.UserSaver(ctx, &user)
 }
 
-func (uc UserUsecase) UserFindById(id int) (domain.User, error) {
-	return uc.UserRepo.UserFindById(id)
+func (uc UserUsecase) UserFindById(ctx context.Context, id int) (domain.User, error) {
+	return uc.UserRepo.UserFindById(ctx, id)
 }
 
-func (uc UserUsecase) UpdateUser(user domain.User) (userResponse domain.User, err error) {
-	userResponse, err = uc.UserRepo.UpdateUser(&user)
+func (uc UserUsecase) UserUpdater(ctx context.Context, user domain.User) (userResponse domain.User, err error) {
+	return uc.UserRepo.UserUpdater(ctx, &user)
+}
+
+func (uc UserUsecase) UserDeleter(ctx context.Context, id int) error {
+	_, err := uc.UserFindById(ctx, id)
 	if err != nil {
-		return userResponse, err
+		return err
 	}
-	return userResponse, nil
+	return uc.UserRepo.UserDeleter(ctx, id)
 }
 
-func (uc UserUsecase) DeleteUser(id int) (user domain.User, err error) {
-	user, err = uc.UserRepo.DeleteUser(id)
-	if err != nil {
-		return user, err
-	}
-	return user, nil
+func (uc UserUsecase) GetAllUser(ctx context.Context) ([]domain.User, error) {
+	return uc.UserRepo.GetAllUser(ctx)
 }
-
-func (uc UserUsecase) GetAllUser() ([]domain.User, error) {
-	users, err := uc.UserRepo.GetAllUser()
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
-}
-
-

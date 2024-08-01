@@ -16,16 +16,14 @@ import (
 type UserHandlerInterface interface {
 	StoreNewUser(w http.ResponseWriter, r *http.Request)
 	UserFindById(w http.ResponseWriter, r *http.Request)
-	DeleteUser(w http.ResponseWriter, r *http.Request)
-	UpdateUser(w http.ResponseWriter, r *http.Request)
+	UserDeleter(w http.ResponseWriter, r *http.Request)
+	UserUpdater(w http.ResponseWriter, r *http.Request)
 	GetAllUser(w http.ResponseWriter, r *http.Request)
 }
 
 type UserHandler struct {
 	UserUsecase usecase.UserUsecaseInterface
 }
-
-
 type ResponseMasage struct {
 	Message string `json:"message"`
 	Data    any    `json:"data,omitempty"`
@@ -40,6 +38,7 @@ func NewUserHandler(userUsecase usecase.UserUsecaseInterface) UserHandlerInterfa
 
 // UserFindById implements UserHandlerInterface.
 func (h *UserHandler) UserFindById(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	start := time.Now()
 	if r.Method != "GET" {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -75,7 +74,7 @@ func (h *UserHandler) UserFindById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Call the use case to get the event by ID
-	user, err := h.UserUsecase.UserFindById(id)
+	user, err := h.UserUsecase.UserFindById(ctx, id)
 	// Handle any errors
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -105,7 +104,8 @@ func (h *UserHandler) UserFindById(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteUser implements UserHandlerInterface.
-func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) UserDeleter(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	start := time.Now()
 	if r.Method != "DELETE" {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -128,13 +128,15 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := strconv.Atoi(users)
+	// Validate the event ID
+	id, err := strconv.Atoi(users)
 	if err != nil {
 		log.Printf("Invalid Id parameter : %v", err)
 		http.Error(w, "Invalid id parameter", http.StatusBadGateway)
 		return
 	}
-	_, err = h.UserUsecase.DeleteUser(userID)
+	// Call the use case to get the event by ID
+	err = h.UserUsecase.UserDeleter(ctx, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		log.Error().
@@ -164,6 +166,7 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 // GetAllUser implements UserHandlerInterface.
 func (h *UserHandler) GetAllUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	start := time.Now()
 	if r.Method != "GET" {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -175,7 +178,7 @@ func (h *UserHandler) GetAllUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	users, err := h.UserUsecase.GetAllUser()
+	users, err := h.UserUsecase.GetAllUser(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Error().
@@ -207,6 +210,7 @@ func (h *UserHandler) GetAllUser(w http.ResponseWriter, r *http.Request) {
 
 // StoreNewUser implements UserHandlerInterface.
 func (h *UserHandler) StoreNewUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	start := time.Now()
 	if r.Method != "POST" {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -244,7 +248,7 @@ func (h *UserHandler) StoreNewUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err = h.UserUsecase.UserSaver(users)
+	users, err = h.UserUsecase.UserSaver(ctx, users)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		log.Info().
@@ -275,7 +279,8 @@ func (h *UserHandler) StoreNewUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateUser implements UserHandlerInterface.
-func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) UserUpdater(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	start := time.Now()
 	if r.Method != "PUT" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -298,7 +303,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.UserUsecase.UpdateUser(users)
+	_, err = h.UserUsecase.UserUpdater(ctx, users)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		log.Info().

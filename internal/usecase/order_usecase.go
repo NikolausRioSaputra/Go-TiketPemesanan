@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"Go-TiketPemesanan/internal/domain"
-	"Go-TiketPemesanan/internal/repository"
+	// "Go-TiketPemesanan/internal/repository"
+	"Go-TiketPemesanan/internal/repositorydb"
+	"context"
 	"errors"
 )
 
@@ -12,27 +14,35 @@ type OrderUsecaseInterface interface {
 }
 
 type CreateOrder interface {
-	CreateOrder(userId, eventId int, tiketType string, quantity int) (domain.Order, error)
+	CreateOrder(ctx context.Context, userId, eventId int, tiketType string, quantity int) (domain.Order, error)
 }
 
 type ListOrder interface {
-	ListOrder() ([]domain.Order, error)
+	ListOrder(ctx context.Context) ([]domain.Order, error)
 }
 
 type OrderUsecase struct {
-	OrderRepo repository.OrderRepositoryinterface
-	UserRepo  repository.UserRepositoryInterface
-	EventRepo repository.EventRepositoryInterface
+	OrderRepo repositorydb.OrderRepositoryinterface
+	UserRepo  repositorydb.UserRepositoryInterface
+	EventRepo repositorydb.EventRepositoryInterface
+}
+
+func NewOrderUsecase(orderRepo repositorydb.OrderRepositoryinterface, userRepo repositorydb.UserRepositoryInterface, eventRepo repositorydb.EventRepositoryInterface) OrderUsecase {
+	return OrderUsecase{
+		OrderRepo: orderRepo,
+		UserRepo:  userRepo,
+		EventRepo: eventRepo,
+	}
 }
 
 // CreateOrder implements OrderUsecaseInterface.
-func (uc OrderUsecase) CreateOrder(userId int, eventId int, tiketType string, quantity int) (domain.Order, error) {
-	user, err := uc.UserRepo.UserFindById(userId)
+func (uc OrderUsecase) CreateOrder(ctx context.Context, userId int, eventId int, tiketType string, quantity int) (domain.Order, error) {
+	user, err := uc.UserRepo.UserFindById(ctx, userId)
 	if err != nil {
 		return domain.Order{}, err
 	}
 
-	event, err := uc.EventRepo.GetEventById(eventId)
+	event, err := uc.EventRepo.GetEventById(ctx, eventId)
 	if err != nil {
 		return domain.Order{}, err
 	}
@@ -59,14 +69,14 @@ func (uc OrderUsecase) CreateOrder(userId int, eventId int, tiketType string, qu
 	}
 
 	event.Tiket[tiketIndex].Stock -= quantity
-	err = uc.EventRepo.UpdateEvent(event)
+	err = uc.EventRepo.UpdateEvent(ctx, &event)
 	if err != nil {
 		return domain.Order{}, err
 	}
 
 	// Mengurangi balance pengguna
 	newBalance := user.Balance - total
-	_, err = uc.UserRepo.UpdateBalance(userId, newBalance)
+	_, err = uc.UserRepo.UpdateBalance(ctx, userId, newBalance)
 	if err != nil {
 		return domain.Order{}, err
 	}
@@ -80,18 +90,11 @@ func (uc OrderUsecase) CreateOrder(userId int, eventId int, tiketType string, qu
 		Total:  total,
 	}
 
-	return uc.OrderRepo.CreateOrder(order)
+	return uc.OrderRepo.CreateOrder(ctx, order)
 }
 
 // ListOrder implements OrderUsecaseInterface.
-func (uc OrderUsecase) ListOrder() ([]domain.Order, error) {
-	return uc.OrderRepo.ListOrder()
-}
-
-func NewOrderUsecase(orderRepo repository.OrderRepositoryinterface, userRepo repository.UserRepositoryInterface, eventRepo repository.EventRepositoryInterface) OrderUsecase {
-	return OrderUsecase{
-		OrderRepo: orderRepo,
-		UserRepo:  userRepo,
-		EventRepo: eventRepo,
-	}
+func (uc OrderUsecase) ListOrder(ctx context.Context) ([]domain.Order, error) {
+	return uc.OrderRepo.ListOrder(ctx)
+	
 }

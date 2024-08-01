@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"Go-TiketPemesanan/internal/domain"
 	"Go-TiketPemesanan/internal/usecase"
 	"encoding/json"
 	"net/http"
@@ -12,7 +13,9 @@ import (
 
 type EventHandlerInterface interface {
 	ListEvent(w http.ResponseWriter, r *http.Request)
+	CreateEvent(w http.ResponseWriter, r *http.Request)
 	GetEventById(w http.ResponseWriter, r *http.Request)
+
 }
 
 type EventHandler struct {
@@ -25,8 +28,63 @@ func NewEventHandler(eventUsecase usecase.EventUsecaseInterface) EventHandlerInt
 	}
 }
 
+func (h *EventHandler) CreateEvent (w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	start := time.Now()
+	if r.Method != "POST" {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		log.Info().
+			Int("http.status.code", http.StatusMethodNotAllowed).
+			TimeDiff("waktu process", time.Now(), start).
+			Msg("invalid method")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	var event domain.Event
+	err := json.NewDecoder(r.Body).Decode(&event)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Error().
+			Int("http.status.code", http.StatusBadRequest).
+			TimeDiff("waktu process", time.Now(), start).
+			Msg(err.Error())
+		return
+	}
+
+	events, err := h.EventUsecase.CreateEvent(ctx ,event)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Error().
+			Int("http.status.code", http.StatusInternalServerError).
+			TimeDiff("waktu process", time.Now(), start).
+			Msg(err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(ResponseMasage{
+		Message: "Success create event",
+		Data:    events,
+	})
+	log.Info().
+		Int("http.status.code", http.StatusCreated).
+		TimeDiff("waktu process", time.Now(), start).
+		Msg("Create Event API-Complated")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Error().
+			Int("http.status.code", http.StatusInternalServerError).
+			TimeDiff("waktu process", time.Now(), start).
+			Msg(err.Error())
+		return
+	}
+}
+
 // GetEventById implements EventHandlerInterface.
 func (h *EventHandler) GetEventById(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	start := time.Now()
 	if r.Method != "GET" {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -62,7 +120,7 @@ func (h *EventHandler) GetEventById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Call the use case to get the event by ID
-	event, err := h.EventUsecase.GetEventById(id)
+	event, err := h.EventUsecase.GetEventById(ctx, id)
 	// Handle any errors
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -93,6 +151,7 @@ func (h *EventHandler) GetEventById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	start := time.Now()
 	if r.Method != "GET" {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -104,7 +163,7 @@ func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	events, err := h.EventUsecase.ListEvent()
+	events, err := h.EventUsecase.ListEvent(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Error().

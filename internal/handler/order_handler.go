@@ -30,6 +30,7 @@ type ResponseMessage struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
+
 func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	start := time.Now()
@@ -59,37 +60,37 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	select {
-		case <-time.After(5 * time.Second): 
-	order, err := h.OrderUsecase.CreateOrder(req.UserID, req.EventID, req.TiketType, req.Quantity)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Error().
-			Int("http.status.code", http.StatusInternalServerError).
+	case <-time.After(1 * time.Second):
+		order, err := h.OrderUsecase.CreateOrder(ctx, req.UserID, req.EventID, req.TiketType, req.Quantity)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Error().
+				Int("http.status.code", http.StatusInternalServerError).
+				TimeDiff("waktu process", time.Now(), start).
+				Msg(err.Error())
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		err = json.NewEncoder(w).Encode(ResponseMessage{
+			Message: "Success create order",
+			Data:    order,
+		})
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Error().
+				Int("http.status.code", http.StatusInternalServerError).
+				TimeDiff("waktu process", time.Now(), start).
+				Msg(err.Error())
+			return
+		}
+
+		log.Info().
+			Int("http.status.code", http.StatusOK).
 			TimeDiff("waktu process", time.Now(), start).
-			Msg(err.Error())
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(ResponseMessage{
-		Message: "Success create order",
-		Data:    order,
-	})
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Error().
-			Int("http.status.code", http.StatusInternalServerError).
-			TimeDiff("waktu process", time.Now(), start).
-			Msg(err.Error())
-		return
-	}
-
-	log.Info().
-		Int("http.status.code", http.StatusOK).
-		TimeDiff("waktu process", time.Now(), start).
-		Msg("Buy Order Tiket API-Completed")
+			Msg("Buy Order Tiket API-Completed")
 	case <-ctx.Done():
 		// Operasi dibatalkan
 		http.Error(w, "Request canceled", http.StatusRequestTimeout)
@@ -101,6 +102,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (h *OrderHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	start := time.Now()
 	if r.Method != "GET" {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -112,7 +114,7 @@ func (h *OrderHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	orders, err := h.OrderUsecase.ListOrder()
+	orders, err := h.OrderUsecase.ListOrder(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Error().

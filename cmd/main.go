@@ -2,34 +2,35 @@ package main
 
 import (
 	"Go-TiketPemesanan/internal/handler"
-	"Go-TiketPemesanan/internal/repository"
+	"Go-TiketPemesanan/internal/provider/db"
+	"Go-TiketPemesanan/internal/repositorydb"
 	"Go-TiketPemesanan/internal/usecase"
-	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
 	"runtime"
 	"sync"
-	"syscall"
-	"time"
 )
 
 func main() {
 	runtime.GOMAXPROCS(2)
+	db, err := db.GetConnection()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer db.Close()
 
 	var wg sync.WaitGroup
 
-	userRepo := repository.NewUserRepository()
+	userRepo := repositorydb.NewUserRepository(db)
 	userUsacase := usecase.NewUserUsecase(userRepo)
 	userHandler := handler.NewUserHandler(userUsacase)
 
-	eventRepo := repository.NewEventRepository()
+	eventRepo := repositorydb.NewEventRepository(db)
 	eventUsecase := usecase.NewEventUsecase(eventRepo)
 	eventHandler := handler.NewEventHandler(eventUsecase)
 
-	orderRepo := repository.NewOrderRepository()
+	orderRepo := repositorydb.NewOrderRepository(db)
 	orderService := usecase.NewOrderUsecase(orderRepo, userRepo, eventRepo)
 	orderHandler := handler.NewOrderHandler(orderService)
 
@@ -37,11 +38,12 @@ func main() {
 	routes.HandleFunc("/users", userHandler.StoreNewUser)
 	routes.HandleFunc("/users/findbyid", userHandler.UserFindById)
 	routes.HandleFunc("/users/all", userHandler.GetAllUser)
-	routes.HandleFunc("/users/update", userHandler.UpdateUser)
-	routes.HandleFunc("/users/delete", userHandler.DeleteUser)
+	routes.HandleFunc("/users/update", userHandler.UserUpdater)
+	routes.HandleFunc("/users/delete", userHandler.UserDeleter)
 
 	routes.HandleFunc("/events", eventHandler.ListEvent)
 	routes.HandleFunc("/events/findbyid", eventHandler.GetEventById)
+	routes.HandleFunc("/events/create", eventHandler.CreateEvent)
 
 	routes.HandleFunc("/book", orderHandler.CreateOrder)
 	routes.HandleFunc("/orders", orderHandler.ListOrders)
@@ -60,20 +62,5 @@ func main() {
 			log.Fatal("Server failed to start: ", err)
 		}
 	}()
-
-	// Graceful shutdown
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-	
-	<-stop
-	fmt.Println("\nShutting down server...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown: ", err)
-	}
-	
 	wg.Wait()
 }
