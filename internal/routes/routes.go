@@ -9,24 +9,24 @@ import (
 func InitializeRoutes(router *gin.Engine, userHandler handlergin.UserHandlerInterface, eventHandler handlergin.EventHandlerInterface, orderHandler handlergin.OrderHandlerInterface) {
 	userRoutes := router.Group("/users")
 	{
-		userRoutes.POST("/", userHandler.StoreNewUser)
-		userRoutes.GET("/:id", userHandler.UserFindById)
-		userRoutes.GET("/", userHandler.GetAllUser)
-		userRoutes.PUT("/:id", userHandler.UserUpdater)
-		userRoutes.DELETE("/:id", userHandler.UserDeleter)
+		userRoutes.POST("/create", userHandler.StoreNewUser)
+		userRoutes.GET("/findbyid", userHandler.UserFindById)
+		userRoutes.GET("/all", userHandler.GetAllUser)
+		userRoutes.PUT("/edit", userHandler.UserUpdater)
+		userRoutes.DELETE("/delete", userHandler.UserDeleter)
 	}
 
 	eventRoutes := router.Group("/events")
 	{
-		eventRoutes.GET("/", eventHandler.ListEvent)
-		eventRoutes.GET("/:id", eventHandler.GetEventById)
-		eventRoutes.POST("/", eventHandler.CreateEvent)
+		eventRoutes.GET("/all", eventHandler.ListEvent)
+		eventRoutes.GET("/findbyid", eventHandler.GetEventById)
+		eventRoutes.POST("/create", eventHandler.CreateEvent)
 	}
 
 	orderRoutes := router.Group("/orders")
 	{
-		orderRoutes.GET("/", orderHandler.ListOrders)
-		orderRoutes.POST("/", orderHandler.CreateOrder)
+		orderRoutes.GET("/all", orderHandler.ListOrders)
+		orderRoutes.POST("/create", orderHandler.CreateOrder)
 
 	}
 }

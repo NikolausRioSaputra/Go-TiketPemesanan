@@ -3,6 +3,7 @@ package handlergin
 import (
 	"Go-TiketPemesanan/internal/domain"
 	"Go-TiketPemesanan/internal/usecase"
+
 	// "errors"
 	"net/http"
 	"strconv"
@@ -42,7 +43,7 @@ func (h *UserHandler) UserFindById(c *gin.Context) {
 	ctx := c.Request.Context()
 	start := time.Now()
 
-	userId := c.Param("id")
+	userId := c.Query("id")
 	if userId == "" {
 		c.JSON(http.StatusBadRequest, ResponseMasage{
 			Message: "User id is Required",
@@ -93,7 +94,7 @@ func (h *UserHandler) UserDeleter(c *gin.Context) {
 	ctx := c.Request.Context()
 	start := time.Now()
 
-	userId := c.Param("id")
+	userId := c.Query("id") // harusnay pakai query
 	if userId == "" {
 		c.JSON(http.StatusBadRequest, ResponseMasage{
 			Message: "User ID is required",
@@ -196,7 +197,7 @@ func (h *UserHandler) UserUpdater(c *gin.Context) {
 	ctx := c.Request.Context()
 	start := time.Now()
 
-	userId := c.Param("id")
+	userId := c.Query("id")
 	if userId == "" {
 		c.JSON(http.StatusBadRequest, ResponseMessage{
 			Message: "User ID is required",

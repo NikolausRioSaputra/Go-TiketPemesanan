@@ -2,13 +2,14 @@ package main
 
 import (
 	// "Go-TiketPemesanan/internal/handler"
-	"Go-TiketPemesanan/internal/handlerGin"
+	handlergin "Go-TiketPemesanan/internal/handlerGin"
 	"Go-TiketPemesanan/internal/provider/db"
 	"Go-TiketPemesanan/internal/repositorydb"
 	"Go-TiketPemesanan/internal/routes"
 	"Go-TiketPemesanan/internal/usecase"
 	"fmt"
 	"log"
+
 	// "net/http"
 	"runtime"
 	"sync"
@@ -38,7 +39,8 @@ func main() {
 	orderService := usecase.NewOrderUsecase(orderRepo, userRepo, eventRepo)
 	orderHandler := handlergin.NewOrderHandler(orderService)
 
-	router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
 	routes.InitializeRoutes(router, userHandler, eventHandler, orderHandler)
 
 	fmt.Printf("Server running on :8080")

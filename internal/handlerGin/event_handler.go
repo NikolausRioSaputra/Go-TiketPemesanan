@@ -83,7 +83,7 @@ func (h *EventHandler) GetEventById(c *gin.Context) {
 	ctx := c.Request.Context()
 	start := time.Now()
 
-	eventId := c.Param("id")
+	eventId := c.Query("id")
 	if eventId == "" {
 		c.JSON(http.StatusBadRequest, ResponseMasage{
 			Message: "Event ID is required",
