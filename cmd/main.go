@@ -1,15 +1,19 @@
 package main
 
 import (
-	"Go-TiketPemesanan/internal/handler"
+	// "Go-TiketPemesanan/internal/handler"
+	"Go-TiketPemesanan/internal/handlerGin"
 	"Go-TiketPemesanan/internal/provider/db"
 	"Go-TiketPemesanan/internal/repositorydb"
+	"Go-TiketPemesanan/internal/routes"
 	"Go-TiketPemesanan/internal/usecase"
 	"fmt"
 	"log"
-	"net/http"
+	// "net/http"
 	"runtime"
 	"sync"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -24,40 +28,24 @@ func main() {
 
 	userRepo := repositorydb.NewUserRepository(db)
 	userUsacase := usecase.NewUserUsecase(userRepo)
-	userHandler := handler.NewUserHandler(userUsacase)
+	userHandler := handlergin.NewUserHandler(userUsacase)
 
 	eventRepo := repositorydb.NewEventRepository(db)
 	eventUsecase := usecase.NewEventUsecase(eventRepo)
-	eventHandler := handler.NewEventHandler(eventUsecase)
+	eventHandler := handlergin.NewEventHandler(eventUsecase)
 
 	orderRepo := repositorydb.NewOrderRepository(db)
 	orderService := usecase.NewOrderUsecase(orderRepo, userRepo, eventRepo)
-	orderHandler := handler.NewOrderHandler(orderService)
+	orderHandler := handlergin.NewOrderHandler(orderService)
 
-	routes := http.NewServeMux()
-	routes.HandleFunc("/users", userHandler.StoreNewUser)
-	routes.HandleFunc("/users/findbyid", userHandler.UserFindById)
-	routes.HandleFunc("/users/all", userHandler.GetAllUser)
-	routes.HandleFunc("/users/update", userHandler.UserUpdater)
-	routes.HandleFunc("/users/delete", userHandler.UserDeleter)
+	router := gin.Default()
+	routes.InitializeRoutes(router, userHandler, eventHandler, orderHandler)
 
-	routes.HandleFunc("/events", eventHandler.ListEvent)
-	routes.HandleFunc("/events/findbyid", eventHandler.GetEventById)
-	routes.HandleFunc("/events/create", eventHandler.CreateEvent)
-
-	routes.HandleFunc("/book", orderHandler.CreateOrder)
-	routes.HandleFunc("/orders", orderHandler.ListOrders)
-
-	server := http.Server{
-		Addr:    ":8080",
-		Handler: routes,
-	}
-
-	fmt.Printf("Server running on %s", server.Addr)
+	fmt.Printf("Server running on :8080")
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err := server.ListenAndServe()
+		err := router.Run(":8080")
 		if err != nil {
 			log.Fatal("Server failed to start: ", err)
 		}

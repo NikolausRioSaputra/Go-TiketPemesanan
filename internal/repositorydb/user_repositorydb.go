@@ -4,6 +4,7 @@ import (
 	"Go-TiketPemesanan/internal/domain"
 	"context"
 	"database/sql"
+	"fmt"
 	"sync"
 )
 
@@ -37,7 +38,7 @@ type UserDeleter interface {
 }
 
 type UpdateBalance interface {
-	UpdateBalance(ctx context.Context, id int, newBalance float64) (domain.User,error)
+	UpdateBalance(ctx context.Context, id int, newBalance float64) (domain.User, error)
 }
 
 type UserRepository struct {
@@ -92,12 +93,12 @@ func (repo *UserRepository) UserSaver(ctx context.Context, user *domain.User) (d
 func (repo *UserRepository) UserFindById(ctx context.Context, id int) (domain.User, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
-	
+
 	var user domain.User
 	query := `SELECT id, name, address, balance FROM users WHERE id = $1`
 	err := repo.DB.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Name, &user.Address, &user.Balance)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, fmt.Errorf("user not found")
 	}
 	return user, nil
 }
@@ -127,7 +128,7 @@ func (repo *UserRepository) UserDeleter(ctx context.Context, id int) error {
 	return nil
 }
 
-func (repo *UserRepository) UpdateBalance(ctx context.Context, id int, newBalance float64) (domain.User, error){
+func (repo *UserRepository) UpdateBalance(ctx context.Context, id int, newBalance float64) (domain.User, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
@@ -138,6 +139,6 @@ func (repo *UserRepository) UpdateBalance(ctx context.Context, id int, newBalanc
 		return domain.User{}, err
 	}
 
-	return user, nil 
+	return user, nil
 
 }
