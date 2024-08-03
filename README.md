@@ -2,22 +2,22 @@
 
 Go-TiketPemesanan adalah aplikasi web berbasis API yang ditulis dalam Golang untuk mengelola pemesanan tiket secara online. Aplikasi ini menyediakan layanan CRUD (Create, Read, Update, Delete) untuk entitas seperti pengguna, event, dan pesanan tiket. Dengan menggunakan framework Gin dan PostgreSQL sebagai database, aplikasi ini berjalan di port 8080 dan menawarkan berbagai endpoint untuk memudahkan manajemen data dan transaksi tiket secara efisien.
 
-### 1. Folder event
+## 1. Folder event
 Folder event berisi file yang mengelola operasi terkait event atau acara.
 
-create event
+### create event
 ![create Event Screenshot](./images/EventSuccess/createEven.png)
 
-get all event
+### get all event
 ![get all Event Screenshot](./images/EventSuccess/getAllEvent.png)
 
-find by Id event
+### find by Id event
 ![find by id Event Screenshot](./images/EventSuccess/findByIdEvent.png)
 
-Log Event
+### Log Event
 ![log Event Screenshot](./images/EventSuccess/logEvent.png)
 
-Folder Validation: Mengandung validasi data untuk memastikan input pengguna sesuai dengan aturan sebelum diproses.
+### Folder Validation: Mengandung validasi data untuk memastikan input pengguna sesuai dengan aturan sebelum diproses.
 ![validation price Screenshot](./images/EventSuccess/validation/priceValidation.png)
 ![validation stock tiket Screenshot](./images/EventSuccess/validation/tiketStockEmpty.png)
 ![validation type empty Screenshot](./images/EventSuccess/validation/typeEventEmpty.png)
@@ -27,34 +27,34 @@ Folder Validation: Mengandung validasi data untuk memastikan input pengguna sesu
 
 
 
-### 2. Folder user
-Folder user berisi file yang mengelola operasi terkait pengguna.
+## 2. Folder user
+### Folder user berisi file yang mengelola operasi terkait pengguna.
 
-create user
+### create user
 ![Create User Screenshot](./images/UserSuccess/createUser.png)
 
-find by id user
+### find by id user
 ![FindbyId User Screenshot](./images/UserSuccess/userfindById.png)
 
-get all user
+### get all user
 ![get all User Screenshot](./images/UserSuccess//getAllUser.png)
 
-update user
+### update user
 ![Update User Screenshot](./images/UserSuccess/userUpdate.png)
 
-setelah update
+### setelah update
 ![after Update Screenshot](./images/UserSuccess/afterUpdate.png)
 
-delete user
+### delete user
 ![Delete User Screenshot](./images/UserSuccess/deleteUser.png)
-setelah Delete
+### setelah Delete
 ![After Delete User Screenshot](./images/UserSuccess/afterDelete.png)
 
-Log User
+### Log User
 ![log aman](./images/UserSuccess/statusSuccesUser.png)
 ![log kena validation](./images/UserSuccess/validation/LogUserFailed.png)
 
-File user_validation.go: Mengandung validasi data pengguna untuk memastikan input sesuai dengan aturan sebelum diproses.
+### File user_validation.go: Mengandung validasi data pengguna untuk memastikan input sesuai dengan aturan sebelum diproses.
 
 ![User addres empty Screenshot](./images/UserSuccess/validation/validationAddressEmpty.png)
 ![user balance empty Screenshot](./images/UserSuccess/validation/validationBalance.png)
@@ -62,26 +62,25 @@ File user_validation.go: Mengandung validasi data pengguna untuk memastikan inpu
 
 
 
-### 3. Folder orders
-Folder orders berisi file yang mengelola operasi terkait pesanan atau transaksi.
+## 3. Folder orders
+### Folder orders berisi file yang mengelola operasi terkait pesanan atau transaksi.
 
-create order
+### create order
 ![create order Screenshot](./images/Orders/createOrder.png)
 
-get all orders
+### get all orders
 ![get all orders Screenshot](./images/Orders/allOrders.png)
 
-setelah order balance berkuang 
+### setelah order balance berkuang 
 ![order balance berkuang Screenshot](./images/Orders/balanceUpdate.png)
 
-setelah order stock berkurang 
+### setelah order stock berkurang 
 ![order stock berkurang Screenshot](./images/Orders/stockUpdate.png)
 
-
-Log orders
+### Log orders
 ![log orders Screenshot](./images/Orders/Validation/logOrders.png)
 
-File order_validation.go: Mengandung validasi data pesanan untuk memastikan transaksi berjalan sesuai aturan.
+### File order_validation.go: Mengandung validasi data pesanan untuk memastikan transaksi berjalan sesuai aturan.
 
 ![Create User Screenshot](./images/Orders/Validation/orderEventNotFound.png)
 ![Create User Screenshot](./images/Orders/Validation/OrdersinsufficientBalance.png)
